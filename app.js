@@ -98,11 +98,12 @@ async function buy_game(game_url)
 
 async function main()
 {
-	browser = await pupeteer.launch({headless : true});
+	const browser = await pupeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox'], headless : true});
 	page = await browser.newPage();
 	await page.setJavaScriptEnabled(true);
 	await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36");
 
+	console.log("Looking for available games");
 	const games = await get_games();
 
 	console.log(`Found ${games.length} free games`);
