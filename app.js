@@ -1,6 +1,7 @@
 const base_url = 'https://www.epicgames.com';
 const pupeteer = require('puppeteer');
 var browser, page;
+var random_useragent = require('random-useragent');
 const creds = require("./creds.json");
 
 
@@ -80,7 +81,7 @@ async function buy_game(game_url)
 			return 0;
 		});
 
-		if (status)
+		if (status == 1)
 			return status;
 		await page.waitFor(5000);
 
@@ -92,13 +93,13 @@ async function buy_game(game_url)
 			 return 0;
 		});
 
-		if (status)
+		if (status == 1)
 			return status;
 		await page.waitFor(5000);
 		await page.evaluate(() => {
 			document.getElementsByClassName("btn btn-primary")[1].click()
 		});
-
+		console.log("Confirmed")
 		await page.waitFor(5000);
 		return 0;
 }
@@ -108,7 +109,7 @@ async function main()
 	const browser = await pupeteer.launch({args: ["--disable-gpu", "--proxy-bypass-list=*", "--proxy-server='direct://'", '--no-sandbox', '--disable-setuid-sandbox'], headless : true});
 	page = await browser.newPage();
 	await page.setJavaScriptEnabled(true);
-	await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36");
+	await page.setUserAgent(random_useragent.getRandom());
 
 
 	page.on("response", res => {
@@ -122,6 +123,9 @@ async function main()
 
 	console.log(`Found ${games.length} free games`);
 	for (let cred of creds) {
+		let useragent = random_useragent.getRandom()
+		console.log(`Generated new useragent ${useragent}`);
+		await page.setUserAgent(useragent);
 		let status = await login(cred.usernameOrEmail, cred.password);
 
 		if (!status) {
@@ -130,7 +134,7 @@ async function main()
 		}
 
 		for (let game of games) {
-			if (await buy_game(game))
+			if ((await buy_game(game)) == 1)
 				console.log(`${game} Already Owned, skipping`);
 			else
 				console.log(`${game} Baught`);
