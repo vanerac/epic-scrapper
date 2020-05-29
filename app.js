@@ -10,16 +10,19 @@ async function login(usernameOrEmail, password)
 	page.goto(`${base_url}/login/`);
 	const response = await page.waitForNavigation({waituntil: 'domcontentloaded'});
 	await response.request().redirectChain();
+
 	console.log("Page Loaded")
 	await page.screenshot();
 	await page.screenshot();
 	console.log("Typing Logging in")
+	await page.waitFor('#login-with-epic')
 	await page.click('#login-with-epic');
 	console.log("Typing Login")
 	await page.type('#usernameOrEmail', usernameOrEmail);
 	console.log("Typing Password")
 	await page.type('#password', password);
 	console.log("Submitting")
+	await page.waitFor('[type=submit]');
 	await page.click('[type=submit]');
 	console.log("Waiting for network activty")
 	await page.waitForNavigation({waitUntil : "networkidle0"});
