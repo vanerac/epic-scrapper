@@ -1,7 +1,7 @@
 const base_url = 'https://www.epicgames.com';
-const pupeteer = require('puppeteer');
-var browser, page;
-var random_useragent = require('random-useragent');
+const puppeteer = require('puppeteer-extra');
+var brow, page;
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const creds = require("./creds.json");
 
 
@@ -106,16 +106,15 @@ async function buy_game(game_url)
 
 async function main()
 {
-	const browser = await pupeteer.launch({args: ["--disable-gpu", "--proxy-bypass-list=*", "--proxy-server='direct://'", '--no-sandbox', '--disable-setuid-sandbox'], headless : true});
-	page = await browser.newPage();
-	await page.setJavaScriptEnabled(true);
-	await page.setUserAgent(random_useragent.getRandom());
+	puppeteer.use(StealthPlugin());
+	brow = await puppeteer.launch({args: ["--disable-gpu", "--proxy-bypass-list=*", "--proxy-server='direct://'", '--no-sandbox', '--disable-setuid-sandbox'], headless : true});
+	page = await brow.newPage();
 
+	await page.setJavaScriptEnabled(true);
 
 	page.on("response", res => {
 			if (res.url() == "https://epic-games-api.arkoselabs.com/fc/api/?onload=loadChallenge")
 				throw new Error("Capcha detected");
-			// console.log(res.url());
 	});
 
 	console.log("Looking for available games");
@@ -123,9 +122,6 @@ async function main()
 
 	console.log(`Found ${games.length} free games`);
 	for (let cred of creds) {
-		let useragent = random_useragent.getRandom()
-		console.log(`Generated new useragent ${useragent}`);
-		await page.setUserAgent(useragent);
 		let status = await login(cred.usernameOrEmail, cred.password);
 
 		if (!status) {
@@ -145,14 +141,14 @@ async function main()
 	}
 
 	console.log("Done");
-	await browser.close();
+	await brow.close();
 	process.exit(1);
 }
 
 process.on("unhandledRejection", async err => {
 	console.error(err);
 	try {
-			await browser.close();
+			await brow.close();
 	} catch (e) {
 		console.error(e);
 	}
