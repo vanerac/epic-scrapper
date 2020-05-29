@@ -55,7 +55,6 @@ async function get_games()
 			return arr;
 
 	});
-	console.log(bite);
 	return bite;
 }
 
@@ -82,17 +81,19 @@ async function buy_game(game_url)
 		});
 
 		if (status)
-			return 1;
+			return status;
 		await page.waitFor(5000);
+
 		status = await page.evaluate(() => {
 			 v = document.getElementsByClassName("btn btn-primary");
-			 if (v == 0)
+			 if (v.length == 0)
 			 		return 1;
 			 v[0].click();
+			 return 0;
 		});
 
 		if (status)
-			return;
+			return status;
 		await page.waitFor(5000);
 		await page.evaluate(() => {
 			document.getElementsByClassName("btn btn-primary")[1].click()
@@ -113,6 +114,7 @@ async function main()
 	page.on("response", res => {
 			if (res.url() == "https://epic-games-api.arkoselabs.com/fc/api/?onload=loadChallenge")
 				throw new Error("Capcha detected");
+			// console.log(res.url());
 	});
 
 	console.log("Looking for available games");
@@ -133,7 +135,12 @@ async function main()
 			else
 				console.log(`${game} Baught`);
 		}
+		await page.goto(`${base_url}/logout`);
+		console.log("Logged Out");
+		await page.waitFor(3000);
 	}
+
+	console.log("Done");
 	await browser.close();
 	process.exit(1);
 }
