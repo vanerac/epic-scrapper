@@ -10,17 +10,20 @@ async function login(usernameOrEmail, password)
 	page.goto(`${base_url}/login/`);
 	const response = await page.waitForNavigation({waituntil: 'domcontentloaded'});
 	await response.request().redirectChain();
-
+	console.log("Page Loaded")
 	await page.screenshot();
 	await page.screenshot();
+	console.log("Typing Logging in")
 	await page.click('#login-with-epic');
+	console.log("Typing Login")
 	await page.type('#usernameOrEmail', usernameOrEmail);
+	console.log("Typing Password")
 	await page.type('#password', password);
+	console.log("Submitting")
 	await page.click('[type=submit]');
-
-	for (let i = 0; page.url() != 'https://www.epicgames.com/store/en-US/' && i < 10; ++i) {
-			await page.waitFor(1000);
-	}
+	console.log("Waiting for network activty")
+	await page.waitForNavigation({waitUntil : "networkidle0"});
+	console.log("Checking redirection");
 	if (page.url() != 'https://www.epicgames.com/store/en-US/')
 		return 0;
 	console.log(`Logged in as ${usernameOrEmail}`);
@@ -125,5 +128,14 @@ async function main()
 	await browser.close();
 }
 
+process.on("unhandledRejection", async err => {
+	console.error(err);
+	try {
+			await browser.close();
+	} catch (e) {
+		console.error(e);
+	}
+	process.exit(1);
+})
 
 main();
